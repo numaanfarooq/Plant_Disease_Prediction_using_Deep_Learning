@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plant Disease Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Plant Disease Detection</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="upload-box">
+                <input type="file" id="imageInput" accept="image/*" required>
+                <label for="imageInput">Choose Plant Image</label>
+                <img id="preview" style="display: none;">
+            </div>
+            <button type="submit">Analyze</button>
+        </form>
+        <div id="result" class="hidden">
+            <h2>Prediction: <span id="predClass"></span></h2>
+            <p>Confidence: <span id="confidence"></span>%</p>
+            <div id="allPredictions"></div>
+        </div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const resultDiv = document.getElementById('result');
+        
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                preview.style.display = 'block';
+                preview.src = URL.createObjectURL(file);
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('file', imageInput.files[0]);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('predClass').textContent = data.class;
+                document.getElementById('confidence').textContent = 
+                    (data.confidence * 100).toFixed(2);
+                
+                // Show all predictions
+                const predictionsDiv = document.getElementById('allPredictions');
+                predictionsDiv.innerHTML = '<h3>All Predictions:</h3>';
+                for (const [cls, prob] of Object.entries(data.all_predictions)) {
+                    const progress = (prob * 100).toFixed(2);
+                    predictionsDiv.innerHTML += `
+                        <div class="pred-row">
+                            <span>${cls}</span>
+                            <div class="progress-bar">
+                                <div style="width: ${progress}%"></div>
+                            </div>
+                            <span>${progress}%</span>
+                        </div>
+                    `;
+                }
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                alert('Error analyzing image: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
