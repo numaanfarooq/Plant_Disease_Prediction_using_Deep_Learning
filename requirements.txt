@@ -1,0 +1,11 @@
+tensorflow
+matplotlib
+numpy
+scikit-learn
+flask
+fastapi>=0.68.0
+uvicorn>=0.15.0
+tensorflow>=2.6.0
+pillow>=8.3.1
+python-multipart>=0.0.5
+numpy>=1.19.5
